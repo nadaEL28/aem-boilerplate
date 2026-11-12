@@ -1,0 +1,14 @@
+---
+description: What must be true before a block change is done
+alwaysApply: true
+---
+
+# Definition of done
+
+A block change is done when all of these are true:
+
+- `npm run lint` and `npm test` both exit 0. If you skipped a test, say why and name the ticket. Do not leave a new failure hidden.
+- The block's `blocks/<name>/README.md` is updated when behavior or authored markup changes. Stock blocks other than ones you touch may not have a README yet; add one for the block you change.
+- The pull request includes evidence (a screenshot or a screen recording of the block in the dev server) and a short "how I verified" note: the commands you ran, what you clicked or tabbed through, and what the screen reader or axe result was.
+
+Open the pull request against this fork (`nadaEL28/aem-boilerplate`), base `main`. Do not open it against `adobe/aem-boilerplate`.

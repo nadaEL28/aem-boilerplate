@@ -1,0 +1,16 @@
+---
+description: WCAG 2.1 AA checklist for blocks, styles, and tests
+globs: blocks/**/*,styles/**/*,test/**/*
+alwaysApply: false
+---
+
+# Accessibility (WCAG 2.1 AA)
+
+Check these before finishing a block change. The automated check is `npm test` (axe-core, tags `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`). jsdom does not measure contrast; check contrast yourself.
+
+- **Alt text.** Every informative image has an `alt` that says what it shows. Decorative images use `alt=""`. `createOptimizedPicture` in `scripts/aem.js` sets `alt` on the fallback `img`. Pass the authored alt through. Do not remove the attribute. An empty string and a missing attribute are not the same: a missing attribute fails WCAG 1.1.1.
+- **Focus order and visible focus.** DOM order is the tab order. Do not add positive `tabindex`. Buttons and links need a visible `:focus-visible` style. `styles/styles.css` does this for `.button`. `blocks/header/header.css` uses `outline: 2px solid currentcolor` on the nav dropdown button. Do not remove an outline unless a replacement is at least as visible.
+- **Contrast.** Body text uses `--text-color` (`#131313`) on `--background-color` (`white`) in `styles/styles.css`. Keep text and its background at least 4.5:1, and large text or UI boundaries at least 3:1. White hero type is meant to sit on a photo; do not use that white on a white section.
+- **Reduced motion.** This boilerplate does not animate. If you add a transition or animation, guard it with `@media (prefers-reduced-motion: reduce)` and provide a non-moving alternative.
+- **Semantic HTML.** Use `ul`/`li` for groups of cards (`blocks/cards/cards.js`), real `button` elements for controls (`blocks/header/header.js`), and headings in order. Do not click a `div`.
+- **Keyboard support.** Anything you can click you can operate with the keyboard. `header` closes the menu on Escape and returns focus to the control that opened it. Match that when you build a disclosure, dialog, or menu.
