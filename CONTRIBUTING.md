@@ -23,6 +23,8 @@ For other contributors, a maintainer of the project has to approve the pull requ
 
 # How to Contribute
 
+Authoring a new block (structure, naming, accessibility, and how to test): [docs/authoring-a-block.md](docs/authoring-a-block.md).
+
 1. Fork the repository
 2. Make some changes on a branch on your fork
 3. Create a pull request from your branch

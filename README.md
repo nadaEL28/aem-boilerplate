@@ -13,6 +13,8 @@ Before using the aem-boilerplate, we recommend you to go through the documentati
 3. [Web Performance](https://www.aem.live/developer/keeping-it-100)
 4. [Markup, Sections, Blocks, and Auto Blocking](https://www.aem.live/developer/markup-sections-blocks)
 
+To add a block in this repository, read [Authoring a block](docs/authoring-a-block.md).
+
 ## Installation
 
 ```sh
