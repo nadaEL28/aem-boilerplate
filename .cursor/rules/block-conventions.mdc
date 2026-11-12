@@ -1,0 +1,18 @@
+---
+description: How blocks in this repository are structured, named, and decorated
+globs: blocks/**/*.{js,css}
+alwaysApply: false
+---
+
+# Block conventions
+
+Derived from `blocks/cards`, `blocks/hero`, `blocks/columns`, `blocks/header`, `blocks/footer`, `blocks/fragment`, and `blocks/widget`.
+
+- A block lives in `blocks/<name>/`. The folder name is the block name. `loadBlock` in `scripts/aem.js` loads `blocks/<name>/<name>.css` and, when the module exists, calls the default export with the block element.
+- `hero` is CSS only (`blocks/hero/hero.css`, no `hero.js`). A missing JS module is caught by `loadBlock`. Add `<name>.js` only when the DOM needs to change.
+- The JS entry is a default export named by convention `decorate(block)`. `header` and `footer` are `async`. `fragment` also exports `loadFragment`, and it is the only block other blocks may import. Everything else comes from `/scripts/`.
+- Do not edit `scripts/aem.js`. It is vendored. Call `createOptimizedPicture` from there when rewriting images, the way `cards` does.
+- Authored markup is rows of cells (`div` inside `div`). Authors omit and add cells. Read the cells that exist; do not assume a fixed count. `columns` counts cells. `cards` turns each row into an `li`.
+- `decorateBlock` adds the class `block`, `data-block-name`, a `<name>-wrapper` on the parent, and a `<name>-container` on the section. Those wrapper and container classes belong to the section system. Scope block CSS to `.<name>` (`.cards`, `.hero`, `.columns`). `hero` is the existing exception: it targets `.hero-container .hero-wrapper` so the band can go full bleed.
+- Class names added in `decorate` are prefixed with the block name: `cards-card-image`, `cards-card-body`, `columns-img-col`, `columns-2-cols`.
+- `header` and `footer` load a fragment path from metadata (`getMetadata('header' | 'footer')`) and fall back to `/nav` and `/footer`. Follow that pattern only for those blocks.

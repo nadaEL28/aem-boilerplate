@@ -20,3 +20,10 @@ Edge Delivery Services. Read a block first. Omissions are in the repo or known.
 - A PR without a `{branch}--{repo}--{owner}.aem.page/{path}` link is rejected.
 - All committed files are served. Use `.hlxignore`.
 - Skills: `/plugin marketplace add adobe/skills`, then `aem-edge-delivery-services` (24 skills, incl. `docs-search`).
+
+## Cursor Cloud specific instructions
+
+- `npm install` is the install command in `.cursor/environment.json`. It is idempotent.
+- The dev server is a terminal in that file: `npx -y @adobe/aem-cli up` on port 3000. `start` is `true` so Cloud Agent schedules those terminals (a start command has to be present). The server needs network access because it proxies preview content.
+- Verify with `npm run lint` and `npm test`.
+- Do not edit `scripts/aem.js`.
