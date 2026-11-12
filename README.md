@@ -13,6 +13,17 @@ Before using the aem-boilerplate, we recommend you to go through the documentati
 3. [Web Performance](https://www.aem.live/developer/keeping-it-100)
 4. [Markup, Sections, Blocks, and Auto Blocking](https://www.aem.live/developer/markup-sections-blocks)
 
+## Running locally
+
+```sh
+npm install
+npx -y @adobe/aem-cli up
+npm run lint
+npm test
+```
+
+`npx -y @adobe/aem-cli up` serves this repository at <http://localhost:3000> and proxies preview content. `npm test` runs [axe-core](https://github.com/dequelabs/axe-core) against fixtures in jsdom (WCAG 2.1 AA rules that do not need a layout engine). Contrast is not measured there.
+
 ## Installation
 
 ```sh
