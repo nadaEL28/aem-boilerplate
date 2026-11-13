@@ -106,3 +106,147 @@ test('cards decorate keeps the author image alt', {
   assert.equal(imageAlt.length, 0, violationSummary(results));
   assert.equal(block.querySelector('img').getAttribute('alt'), 'Team planning a launch');
 });
+
+function setReducedMotion(matches) {
+  window.matchMedia = (query) => ({
+    matches,
+    media: query,
+    addEventListener() {},
+    removeEventListener() {},
+  });
+}
+
+function promoBannerBlock() {
+  const block = document.createElement('div');
+  block.className = 'promo-banner block';
+  block.dataset.blockName = 'promo-banner';
+  block.innerHTML = `
+    <div>
+      <div>
+        <picture>
+          <img src="/media_winter.jpg" alt="Snowy storefront with a winter sale sign">
+        </picture>
+      </div>
+    </div>
+    <div>
+      <div>
+        <h2>Winter sale</h2>
+        <p>Save 20% through the season.</p>
+        <p><a href="/sale">Shop the sale</a></p>
+      </div>
+    </div>
+    <div>
+      <div>2099-01-01T00:00:00Z</div>
+    </div>
+  `;
+  return block;
+}
+
+function stopCountdown(block) {
+  const pause = block.querySelector('.promo-banner-pause');
+  if (pause && !pause.hidden && pause.getAttribute('aria-pressed') !== 'true') pause.click();
+}
+
+test('promo banner keeps authored alt and passes WCAG checks that run in jsdom', async () => {
+  installDom('');
+  setReducedMotion(true);
+  const block = promoBannerBlock();
+  const { default: decorate } = await import('../blocks/promo-banner/promo-banner.js');
+  document.body.append(block);
+  decorate(block);
+
+  const img = block.querySelector('img');
+  assert.equal(img.getAttribute('alt'), 'Snowy storefront with a winter sale sign');
+  assert.equal(block.getAttribute('role'), 'region');
+  assert.equal(block.getAttribute('aria-labelledby'), block.querySelector('h2').id);
+  assert.equal(block.querySelector('.promo-banner-timer').getAttribute('aria-hidden'), 'true');
+  assert.equal(block.querySelector('.promo-banner-timer').hidden, true);
+  assert.equal(block.querySelector('.promo-banner-pause').hidden, true);
+  assert.match(block.querySelector('.promo-banner-deadline').textContent, /^Offer ends /);
+  assert.ok(block.querySelector('.promo-banner-deadline time').dateTime);
+
+  const controls = [...block.querySelectorAll('a, button')];
+  const linkIndex = controls.indexOf(block.querySelector('a'));
+  const pauseIndex = controls.indexOf(block.querySelector('.promo-banner-pause'));
+  assert.ok(linkIndex >= 0 && linkIndex < pauseIndex);
+  [...block.querySelectorAll('[tabindex]')].forEach((el) => {
+    assert.ok(Number(el.getAttribute('tabindex')) <= 0);
+  });
+
+  const results = await axe.run(block, JSDOM_AXE_OPTIONS);
+  assert.equal(results.violations.length, 0, violationSummary(results));
+});
+
+test('promo banner preserves an empty alt and a missing alt', async () => {
+  installDom('');
+  setReducedMotion(true);
+  const { default: decorate } = await import('../blocks/promo-banner/promo-banner.js');
+
+  const decorative = document.createElement('div');
+  decorative.innerHTML = `
+    <div><div><picture><img src="/media_winter.jpg" alt=""></picture></div></div>
+    <div><div><p>Seasonal note</p></div></div>
+  `;
+  document.body.append(decorative);
+  decorate(decorative);
+  assert.equal(decorative.querySelector('img').getAttribute('alt'), '');
+  assert.equal(decorative.querySelector('[role="region"]'), null);
+
+  const missing = document.createElement('div');
+  missing.innerHTML = `
+    <div><div><picture><img src="/media_winter.jpg"></picture></div></div>
+    <div><div><p>Seasonal note</p></div></div>
+  `;
+  document.body.append(missing);
+  decorate(missing);
+  assert.equal(missing.querySelector('img').hasAttribute('alt'), false);
+});
+
+test('promo banner countdown can be paused and an ended offer does not tick', async () => {
+  installDom('');
+  setReducedMotion(false);
+  const intervals = [];
+  const originalSet = window.setInterval;
+  const originalClear = window.clearInterval;
+  window.setInterval = (fn, ms) => {
+    const id = originalSet.call(window, fn, ms);
+    intervals.push(id);
+    return id;
+  };
+  const cleared = [];
+  window.clearInterval = (id) => {
+    cleared.push(id);
+    return originalClear.call(window, id);
+  };
+
+  const { default: decorate } = await import('../blocks/promo-banner/promo-banner.js');
+  const block = promoBannerBlock();
+  document.body.append(block);
+  try {
+    decorate(block);
+    assert.equal(intervals.length, 1);
+    const pause = block.querySelector('.promo-banner-pause');
+    assert.equal(pause.type, 'button');
+    assert.equal(pause.textContent, 'Pause countdown');
+    pause.click();
+    assert.equal(pause.getAttribute('aria-pressed'), 'true');
+    assert.equal(pause.textContent, 'Resume countdown');
+    assert.deepEqual(cleared, intervals);
+
+    const ended = document.createElement('div');
+    ended.innerHTML = `
+      <div><div><h2>Archive</h2><p>Past promotion.</p></div></div>
+      <div><div><time datetime="2000-01-01T00:00:00Z">January 1, 2000</time></div></div>
+    `;
+    document.body.append(ended);
+    const before = intervals.length;
+    decorate(ended);
+    assert.equal(intervals.length, before);
+    assert.equal(ended.querySelector('.promo-banner-deadline').textContent, 'This offer has ended.');
+    assert.equal(ended.querySelector('.promo-banner-pause').hidden, true);
+  } finally {
+    stopCountdown(block);
+    window.setInterval = originalSet;
+    window.clearInterval = originalClear;
+  }
+});
