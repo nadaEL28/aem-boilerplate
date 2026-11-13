@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeShellExecution": [
+      {
+        "command": ".cursor/hooks/guard-git.py",
+        "failClosed": true
+      }
+    ],
+    "afterFileEdit": [
+      {
+        "command": ".cursor/hooks/flag-a11y.py"
+      }
+    ]
+  }
+}

@@ -1,0 +1,13 @@
+---
+description: Which model to pick for trial work in this repo
+alwaysApply: true
+---
+
+# Model policy
+
+Say the choice out loud before a long run.
+
+- A clear edit that `npm test` can prove: Composer 2.5.
+- An audit, a plan, or an incident where the right fix is not obvious: Grok 4.7. Use one third-party frontier model only when you write down why.
+- Subagents stay on the parent model unless their file names one. Do not pin a frontier model on a subagent by default.
+- One task, one branch. Do not start a second implementation of work another agent already owns.
