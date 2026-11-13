@@ -92,6 +92,44 @@ test('cards decorate builds a list of cards', async () => {
 });
 
 // TODO(A11Y-142): re-enable when cards decorate stops dropping the author alt.
+function promoBannerBlock() {
+  const block = document.createElement('div');
+  block.className = 'promo-banner';
+  const end = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+  block.innerHTML = `
+    <div>
+      <div><h2>Winter sale</h2></div>
+      <div><p>Save on annual plans through the holidays.</p></div>
+      <div>
+        <picture>
+          <img src="/media_promo.jpg" alt="Gift boxes with snowflakes">
+        </picture>
+      </div>
+      <div><p><a href="/pricing" class="button accent">View plans</a></p></div>
+      <div><p><time datetime="${end}">Offer end</time></p></div>
+    </div>
+  `;
+  return block;
+}
+
+test('promo-banner decorate builds an accessible promo region', async () => {
+  installDom('');
+  const block = promoBannerBlock();
+  const { default: decorate } = await import('../blocks/promo-banner/promo-banner.js');
+  document.body.append(block);
+  decorate(block);
+  const { countdownInterval } = block.dataset;
+  if (countdownInterval) window.clearInterval(Number(countdownInterval));
+
+  assert.equal(block.getAttribute('role'), 'region');
+  assert.ok(block.querySelector('#promo-banner-heading'));
+  assert.ok(block.querySelector('.promo-banner-countdown'));
+  assert.equal(block.querySelector('img').getAttribute('alt'), 'Gift boxes with snowflakes');
+
+  const results = await axe.run(block, JSDOM_AXE_OPTIONS);
+  assert.equal(results.violations.length, 0, violationSummary(results));
+});
+
 test('cards decorate keeps the author image alt', {
   skip: 'TODO(A11Y-142): known failure, cards decorate removes the author alt',
 }, async () => {
