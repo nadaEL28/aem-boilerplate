@@ -1,0 +1,13 @@
+---
+description: scripts/aem.js is vendored and must not be edited
+globs: scripts/aem.js
+alwaysApply: false
+---
+
+# Vendored runtime
+
+`scripts/aem.js` is the Edge Delivery runtime. Do not edit it.
+
+Call `createOptimizedPicture` from a block. Pass the authored `alt` through. Do not remove the `alt` attribute afterward. A missing attribute fails WCAG 1.1.1. `alt=""` means decorative.
+
+If a change seems to require editing this file, stop and say so. The fix belongs in the block.
