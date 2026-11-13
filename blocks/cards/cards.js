@@ -14,8 +14,6 @@ export default function decorate(block) {
   });
   ul.querySelectorAll('picture > img').forEach((img) => {
     const optimized = createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }]);
-    // Optimized renditions are decorative; the author alt is not copied over.
-    optimized.querySelector('img').removeAttribute('alt');
     img.closest('picture').replaceWith(optimized);
   });
   block.replaceChildren(ul);

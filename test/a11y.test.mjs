@@ -91,10 +91,7 @@ test('cards decorate builds a list of cards', async () => {
   assert.ok(block.querySelector('.cards-card-body'));
 });
 
-// TODO(A11Y-142): re-enable when cards decorate stops dropping the author alt.
-test('cards decorate keeps the author image alt', {
-  skip: 'TODO(A11Y-142): known failure, cards decorate removes the author alt',
-}, async () => {
+test('cards decorate keeps the author image alt', async () => {
   installDom('');
   const block = cardsBlock();
   const { default: decorate } = await import('../blocks/cards/cards.js');
@@ -105,4 +102,19 @@ test('cards decorate keeps the author image alt', {
   const imageAlt = results.violations.filter((violation) => violation.id === 'image-alt');
   assert.equal(imageAlt.length, 0, violationSummary(results));
   assert.equal(block.querySelector('img').getAttribute('alt'), 'Team planning a launch');
+});
+
+test('cards decorate keeps an empty alt on decorative images', async () => {
+  installDom('');
+  const block = cardsBlock();
+  block.querySelector('img').setAttribute('alt', '');
+  const { default: decorate } = await import('../blocks/cards/cards.js');
+  document.body.append(block);
+  decorate(block);
+
+  assert.equal(block.querySelector('img').hasAttribute('alt'), true);
+  assert.equal(block.querySelector('img').getAttribute('alt'), '');
+  const results = await axe.run(block, JSDOM_AXE_OPTIONS);
+  const imageAlt = results.violations.filter((violation) => violation.id === 'image-alt');
+  assert.equal(imageAlt.length, 0, violationSummary(results));
 });
