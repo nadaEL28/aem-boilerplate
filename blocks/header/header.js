@@ -109,10 +109,13 @@ export default async function decorate(block) {
   });
 
   const navBrand = nav.querySelector('.nav-brand');
-  const brandLink = navBrand.querySelector('.button');
+  const brandLink = navBrand && navBrand.querySelector('.button');
   if (brandLink) {
     brandLink.className = '';
-    brandLink.closest('.button-container').className = '';
+    // decorateButtons uses button-wrapper. The old button-container name is null here,
+    // and assigning to it aborted decorate after the header had already been cleared.
+    const brandWrapper = brandLink.closest('.button-wrapper');
+    if (brandWrapper) brandWrapper.className = '';
   }
 
   const navSections = nav.querySelector('.nav-sections');
