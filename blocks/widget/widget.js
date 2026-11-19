@@ -24,6 +24,29 @@ function widgetUrl(widgetPath, widgetName, extension) {
 }
 
 /**
+ * Copies one widget query param onto a data attribute.
+ * `name` becomes `data-name`. `first-name` becomes `data-first-name`.
+ * `dataset[key]` throws on kebab-case, and that throw used to abort loading.
+ * @param {Element} widget The widget block element
+ * @param {string} key Query parameter name
+ * @param {string} value Query parameter value
+ */
+function assignWidgetParam(widget, key, value) {
+  try {
+    widget.dataset[key] = value;
+  } catch {
+    // dataset rejects kebab-case (`first-name` throws SyntaxError).
+    const attrName = `data-${String(key).toLowerCase()}`;
+    if (!/^data-[a-z0-9_.-]+$/.test(attrName)) return;
+    try {
+      widget.setAttribute(attrName, value);
+    } catch {
+      // Key is not a legal attribute name. Skip this param only.
+    }
+  }
+}
+
+/**
  * Applies widget metadata, block classes, and section shell classes.
  * Must run before widget HTML/JS load so decorate can read config from the DOM.
  * @param {Element} widget The widget block element
@@ -36,7 +59,7 @@ function applyWidgetShell(widget, source, widgetName, searchParams) {
   widget.classList.remove('block');
   widget.dataset.source = source.href;
   searchParams.forEach((value, key) => {
-    widget.dataset[key] = value;
+    assignWidgetParam(widget, key, value);
   });
 
   const wrapper = widget.closest('.widget-wrapper');
