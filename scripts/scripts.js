@@ -77,7 +77,7 @@ function buildWidgetAutoBlocks(main) {
  * Builds all synthetic blocks in a container element.
  * @param {Element} main The container element
  */
-function buildAutoBlocks(main) {
+function buildAutoBlocks(main, ancestors = []) {
   try {
     // auto load `*/fragments/*` references
     const fragments = [...main.querySelectorAll('a[href*="/fragments/"]')].filter((f) => !f.closest('.fragment'));
@@ -87,7 +87,9 @@ function buildAutoBlocks(main) {
         fragments.forEach(async (fragment) => {
           try {
             const { pathname } = new URL(fragment.href);
-            const frag = await loadFragment(pathname);
+            const frag = await loadFragment(pathname, ancestors);
+            // A cycle or a missing fragment leaves the authored link in place.
+            if (!frag || !fragment.parentElement) return;
             fragment.parentElement.replaceWith(...frag.children);
           } catch (error) {
             // eslint-disable-next-line no-console
@@ -145,11 +147,12 @@ function decorateButtons(main) {
 /**
  * Decorates the main element.
  * @param {Element} main The main element
+ * @param {{ ancestors?: string[] }} [context] Fragment paths already being loaded
  */
 // eslint-disable-next-line import/prefer-default-export
-export function decorateMain(main) {
+export function decorateMain(main, context = {}) {
   decorateIcons(main);
-  buildAutoBlocks(main);
+  buildAutoBlocks(main, context.ancestors || []);
   decorateSections(main);
   decorateBlocks(main);
   decorateButtons(main);

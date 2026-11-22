@@ -13,12 +13,37 @@ import {
   loadSections,
 } from '../../scripts/aem.js';
 
+/** Fragment roots currently being decorated, keyed to the paths that loaded them. */
+const ancestorsByMain = new WeakMap();
+
+/**
+ * Pathname used to detect a fragment that includes itself.
+ * @param {string} path Fragment path or URL
+ * @returns {string}
+ */
+function fragmentPathname(path) {
+  try {
+    return new URL(path, window.location.href).pathname;
+  } catch {
+    return '';
+  }
+}
+
 /**
  * Loads a fragment.
  * @param {string} path The path to the fragment
+ * @param {string[]} [ancestors] Paths of fragments already being loaded.
+ * When `path` is one of them, this include is a cycle and is not fetched.
  * @returns {HTMLElement} The root element of the fragment
  */
-export async function loadFragment(path) {
+export async function loadFragment(path, ancestors = []) {
+  const key = fragmentPathname(path);
+  const chain = ancestors.map((item) => fragmentPathname(item)).filter(Boolean);
+  // A fragment that links back to itself (or to a parent in the chain) would
+  // otherwise schedule another fetch after this one resolves, with no stack
+  // left to notice the loop.
+  if (key && chain.includes(key)) return null;
+
   if (path && path.startsWith('/') && !path.startsWith('//')) {
     const resp = await fetch(`${path}.plain.html`);
     if (resp.ok) {
@@ -34,7 +59,9 @@ export async function loadFragment(path) {
       resetAttributeBase('img', 'src');
       resetAttributeBase('source', 'srcset');
 
-      decorateMain(main);
+      const nextAncestors = [...chain, key];
+      ancestorsByMain.set(main, nextAncestors);
+      decorateMain(main, { ancestors: nextAncestors });
       await loadSections(main);
       return main;
     }
@@ -45,7 +72,9 @@ export async function loadFragment(path) {
 export default async function decorate(block) {
   const link = block.querySelector('a');
   const path = link ? link.getAttribute('href') : block.textContent.trim();
-  const fragment = await loadFragment(path);
+  const host = block.closest('main');
+  const ancestors = host ? ancestorsByMain.get(host) || [] : [];
+  const fragment = await loadFragment(path, ancestors);
   if (!fragment) return;
 
   const wrapper = block.closest('.fragment-wrapper');
